@@ -1,0 +1,69 @@
+group 'br.com.fireball'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext {
+        kotlin_version = '1.1.2-2'
+        springBootVersion = '1.5.2.RELEASE'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.1'
+    }
+}
+
+apply {
+    plugin 'java'
+    plugin 'kotlin'
+    plugin 'idea'
+    plugin 'org.springframework.boot'
+    plugin 'com.google.protobuf'
+}
+
+sourceCompatibility = 1.8
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Dalston.SR1'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion") {
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    }
+    compile 'org.springframework.cloud:spring-cloud-starter-config'
+    compile "org.springframework.cloud:spring-cloud-starter-feign"
+    compile "com.google.protobuf:protobuf-java:3.3.1"
+    compile "com.googlecode.protobuf-java-format:protobuf-java-format:1.4"
+
+    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+}
+
+protobuf {
+    generatedFilesBaseDir = "$projectDir/src/generated"
+}
+
+
+clean {
+    delete protobuf.generatedFilesBaseDir
+}
+
+idea {
+    module {
+        sourceDirs += file("${protobuf.generatedFilesBaseDir}/main/java")
+    }
+}
+
+sourceSets.main.java.srcDirs += "${protobuf.generatedFilesBaseDir}/main/java"
+compileKotlin.dependsOn 'generateProto'
